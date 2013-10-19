@@ -1,0 +1,145 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<modelVersion>4.0.0</modelVersion>
+<groupId>com.boundlessgeo.geogit-ruby</groupId>
+<artifactId>geogit-ruby</artifactId>
+<packaging>jar</packaging>
+<version>0.0.1-SNAPSHOT</version>
+
+<properties>
+  <gt.version>9.0</gt.version>
+  <geogit.version>0.6-SNAPSHOT</geogit.version>
+  <akka.version>2.2.1</akka.version>
+</properties>
+
+<repositories>
+  <repository>
+    <id>opengeo</id>
+    <name>OpenGeo Maven Repository</name>
+    <url>http://repo.opengeo.org/</url>
+    <snapshots>
+      <enabled>true</enabled>
+    </snapshots>
+  </repository>
+  <repository>
+    <id>codehaus</id>
+    <name>Codehaus Repository</name>
+    <url>http://repository.codehaus.org</url>
+    <snapshots>
+      <enabled>false</enabled>
+    </snapshots>
+  </repository>
+</repositories>
+
+<dependencies>
+  <dependency>
+    <groupId>org.scala-lang</groupId>
+    <artifactId>scala-library</artifactId>
+    <version>2.10.3</version>
+  </dependency>
+  <dependency>
+    <groupId>com.typesafe</groupId>
+    <artifactId>config</artifactId>
+    <version>1.0.2</version>
+  </dependency>
+  <dependency>
+    <groupId>com.typesafe.akka</groupId>
+    <artifactId>akka-actor_2.10</artifactId>
+    <version>${akka.version}</version>
+  </dependency>
+  <dependency>
+    <groupId>com.typesafe.akka</groupId>
+    <artifactId>akka-remote_2.10</artifactId>
+    <version>${akka.version}</version>
+  </dependency>
+  <dependency>
+    <groupId>org.geogit</groupId>
+    <artifactId>geogit-core</artifactId>
+    <version>${geogit.version}</version>
+  </dependency>
+  <dependency>
+    <groupId>org.geogit</groupId>
+    <artifactId>geogit-bdbje</artifactId>
+    <version>${geogit.version}</version>
+  </dependency>
+  <dependency>
+    <groupId>org.geogit</groupId>
+    <artifactId>geogit-neo4j</artifactId>
+    <version>${geogit.version}</version>
+  </dependency>
+  <dependency>
+    <groupId>org.geogit</groupId>
+    <artifactId>geogit-geotools</artifactId>
+    <version>${geogit.version}</version>
+  </dependency>
+  <dependency>
+    <groupId>org.geotools</groupId>
+    <artifactId>gt-main</artifactId>
+    <version>${gt.version}</version>
+  </dependency>
+  <dependency>
+    <groupId>org.geotools</groupId>
+    <artifactId>gt-epsg-hsql</artifactId>
+    <version>${gt.version}</version>
+  </dependency>
+  <dependency>
+    <groupId>org.geotools</groupId>
+    <artifactId>gt-geojson</artifactId>
+    <version>${gt.version}</version>
+  </dependency>
+  <dependency>
+    <groupId>org.geotools</groupId>
+    <artifactId>gt-property</artifactId>
+    <version>${gt.version}</version>
+  </dependency>
+  <dependency>
+    <groupId>org.geotools</groupId>
+    <artifactId>gt-render</artifactId>
+    <version>${gt.version}</version>
+  </dependency>
+  <dependency>
+    <groupId>org.geotools</groupId>
+    <artifactId>gt-swing</artifactId>
+    <version>${gt.version}</version>
+  </dependency>
+</dependencies>
+
+<build>
+  <plugins>
+    <plugin>
+      <artifactId>maven-dependency-plugin</artifactId>
+      <configuration>
+        <outputDirectory>${basedir}/geogit-libs</outputDirectory>
+      </configuration>
+      <executions>
+        <execution>
+          <id>install</id>
+          <phase>install</phase>
+          <goals>
+            <goal>copy-dependencies</goal>
+          </goals>
+        </execution>
+        <execution>
+          <id>initialize</id>
+          <phase>initialize</phase>
+          <configuration>
+            <tasks>
+              <mkdir dir="${basedir}/geogit-libs" />
+            </tasks>
+          </configuration>
+        </execution>
+        <execution>
+          <id>clean</id>
+          <phase>clean</phase>
+          <configuration>
+            <tasks>
+              <delete dir="${basedir}/geogit-libs" />
+            </tasks>
+          </configuration>
+        </execution>
+      </executions>
+    </plugin>
+  </plugins>
+</build>
+
+</project>
