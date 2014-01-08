@@ -11,9 +11,8 @@ module GeoGit
       end
 
       def run
-        geogit = GeoGit::Instance.new @repo_path
-        command_locator = geogit.get_command_locator
-        command = command_locator.command LogOp.java_class
+        geogit = GeoGit::Instance.new(@repo_path).instance
+        command = geogit.command(LogOp.java_class)
 
         command.add_path @path unless @path.empty?
 
@@ -29,6 +28,8 @@ module GeoGit
         end
 
         {count: count, commits: prepare_output(commits.to_a)}
+      ensure
+        geogit.close
       end
 
       private

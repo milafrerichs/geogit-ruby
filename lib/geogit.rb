@@ -7,8 +7,25 @@ if defined? JRUBY_VERSION
 
   require 'geogit/geogit'
   require 'geogit/commands/generic_command'
+  require 'geogit/commands/init'
   require 'geogit/commands/log'
+  require 'geogit/commands/add'
+  require 'geogit/commands/commit'
 else
   abort "JRuby is required for this application (http://jruby.org)"
+end
+
+module GeoGit
+  class << self
+    def create_or_init_repo(repo_path)
+      expanded_path = File.expand_path repo_path
+
+      unless Dir.exist? expanded_path
+        Dir.mkdir expanded_path
+      end
+
+      GeoGit::Command::Init.new(expanded_path).run
+    end
+  end
 end
 

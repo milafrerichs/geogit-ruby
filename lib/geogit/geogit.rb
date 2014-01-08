@@ -19,7 +19,7 @@ module GeoGit
     
     def get_command_locator(transaction_id = nil)
       unless transaction_id.nil?
-        GeoGitTranaction.new(
+        GeoGitTransaction.new(
           @instance.get_command_locator,
           @instance.get_repository,
           transaction_id
@@ -32,8 +32,7 @@ module GeoGit
     protected
     def get_injector
       je_storage_module = JEStorageModule.new
-      neo4j_module = Neo4JModule.new
-      Guice.create_injector Modules.override(GeogitModule.new).with(je_storage_module, neo4j_module)
+      Guice.create_injector Modules.override(GeogitModule.new).with(je_storage_module)
     end
 
     protected
