@@ -1,5 +1,4 @@
 java_import org.geogit.storage.bdbje.JEStorageModule
-java_import org.geogit.storage.neo4j.Neo4JModule
 java_import org.geogit.di.GeogitModule
 java_import org.geogit.api.GeoGIT
 java_import org.geogit.api.DefaultPlatform
