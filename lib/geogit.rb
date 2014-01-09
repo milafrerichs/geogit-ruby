@@ -11,6 +11,8 @@ if defined? JRUBY_VERSION
   require 'geogit/commands/log'
   require 'geogit/commands/add'
   require 'geogit/commands/commit'
+  require 'geogit/commands/import_shapefile'
+  require 'geogit/commands/tree'
 else
   abort "JRuby is required for this application (http://jruby.org)"
 end
@@ -25,6 +27,21 @@ module GeoGit
       end
 
       GeoGit::Command::Init.new(expanded_path).run
+    end
+
+    def import_shapefile(repo_path, shapefile)
+      GeoGit::Command::ImportShapefile.new(repo_path, shapefile).run
+
+      trees = GeoGit::Command::Tree.new(repo_path).run
+
+      trees.each do |tree|
+        paths = GeoGit::Command::Tree.new(repo_path, tree).run
+
+        paths.each do |path|
+          GeoGit::Command::Add.new(repo_path, "#{tree}/#{path}", tree).run
+          GeoGit::Command::Commit.new(repo_path, "imported_#{tree}/#{path}").run
+        end
+      end
     end
   end
 end
