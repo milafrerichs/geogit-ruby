@@ -6,10 +6,12 @@ java_import org.geogit.api.porcelain.DiffOp
 module GeoGit
   module Command
     class Commit < GenericCommand
-      def initialize(repo_path, message)
-        # transaction_id, author_name, author_email
+      def initialize(repo_path, message, author_name = nil, author_email = nil)
+        # transaction_id
         @repo_path = repo_path
         @message = message
+        @author_name = author_name
+        @author_email = author_email
       end
       
       def run
@@ -18,10 +20,10 @@ module GeoGit
         diff_op = geogit.command(DiffOp.java_class)
 
         commit = commit_op.set_author(
-          nil,
-          nil
+          @author_name,
+          @author_email
         ).set_message(
-          message
+          @message
         ).set_allow_empty(
           true
         ).set_all(
@@ -30,7 +32,7 @@ module GeoGit
         #.set_amend(false)
         #.set_path_filters(nil)
 
-        parent_id = commit.parent_n(0).or(ObjectId.NULL)
+        parent_id = commit.parent_n(0).or(ObjectId::NULL)
 
         diff = diff_op.set_old_version(
           parent_id
