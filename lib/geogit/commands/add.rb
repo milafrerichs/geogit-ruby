@@ -7,22 +7,24 @@ module GeoGit
     class Add < GenericCommand
       def initialize(repo_path, to_add, path_filter = nil)
         @repo_path = repo_path
+        @to_add = to_add
+        @path_filter = path_filter
       end
 
       def run
         geogit = GeoGit::Instance.new(@repo_path).instance
 
         conflicts = geogit.command(ConflictsReadOp.java_class).call
-        pre_unstaged = geogit.get_repository.get_working_tree.count_unstaged(path_filter)
+        pre_unstaged = geogit.get_repository.get_working_tree.count_unstaged(@path_filter)
 
         return nil if pre_unstaged.get_count == 0 && conflicts.is_empty
 
         command = geogit.command(AddOp.java_class)
 
-        command.add_pattern path_filter unless path_filter.nil?
+        command.add_pattern @path_filter unless @path_filter.nil?
         work_tree = command.set_update_only(false).call
 
-        staged = geogit.get_repository.get_index.count_unstaged(nil)
+        staged = geogit.get_repository.get_index.count_staged(nil)
         unstaged = work_tree.count_unstaged(nil)
 
         [
