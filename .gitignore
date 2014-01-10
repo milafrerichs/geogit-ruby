@@ -2,3 +2,4 @@ geogit-libs/
 target/
 Gemfile.lock
 .ruby-version
+*.gem
