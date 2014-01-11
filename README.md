@@ -14,6 +14,9 @@ Create a repo and import a shapefile:
 ```ruby
 GeoGit.create_or_init_repo '~/Desktop/test_repo'
 GeoGit.import_shapefile '~/Desktop/test_repo', '~/Desktop/states/states.shp'
+# => ["states"]
+
+#GeoGit.import_geojson '~/Desktop/test_repo', '~/Desktop/states/states.geojson'
 ```
 
 To execute a command (get log for previously imported repo):
