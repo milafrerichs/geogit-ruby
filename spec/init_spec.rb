@@ -4,11 +4,11 @@ require 'fileutils'
 
 describe GeoGit::Command::Init do
 
-  before(:all) do
+  before :all do
     FileUtils.mkdir_p File.expand_path('~/geogit/test_repo')
   end
 
-  after(:all) do
+  after :all do
     FileUtils.rm_rf File.expand_path('~/geogit/test_repo')
   end
 

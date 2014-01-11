@@ -4,13 +4,13 @@ require 'fileutils'
 
 describe GeoGit::Command::ImportShapefile do
 
-  before(:all) do
+  before :all do
     repo_path = File.expand_path '~/geogit/test_repo'
     FileUtils.mkdir_p repo_path
     GeoGit::Command::Init.new(repo_path).run
   end
 
-  after(:all) do
+  after :all do
     FileUtils.rm_rf File.expand_path('~/geogit/test_repo')
   end
 
