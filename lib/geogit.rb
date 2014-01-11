@@ -12,6 +12,7 @@ if defined? JRUBY_VERSION
   require 'geogit/commands/add'
   require 'geogit/commands/commit'
   require 'geogit/commands/import_shapefile'
+  require 'geogit/commands/import_geojson'
   require 'geogit/commands/tree'
 else
   abort "JRuby is required for this application (http://jruby.org)"
@@ -29,9 +30,7 @@ module GeoGit
       GeoGit::Command::Init.new(expanded_path).run
     end
 
-    def import_shapefile(repo_path, shapefile)
-      GeoGit::Command::ImportShapefile.new(repo_path, shapefile).run
-
+    def add_and_commit(repo_path)
       trees = GeoGit::Command::Tree.new(repo_path).run
 
       trees.each do |tree|
@@ -42,6 +41,16 @@ module GeoGit
           GeoGit::Command::Commit.new(repo_path, "imported_#{tree}/#{path}").run
         end
       end
+    end
+
+    def import_shapefile(repo_path, shapefile)
+      GeoGit::Command::ImportShapefile.new(repo_path, shapefile).run
+      add_and_commit repo_path
+    end
+
+    def import_geojson(repo_path, geojson)
+      GeoGit::Command::ImportGeoJSON.new(repo_path, geojson).run
+      add_and_commit repo_path
     end
   end
 end

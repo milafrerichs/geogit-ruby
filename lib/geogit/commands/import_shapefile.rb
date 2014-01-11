@@ -4,8 +4,8 @@ java_import org.geotools.data.DataStore
 java_import org.geotools.data.shapefile.ShapefileDataStoreFactory
 java_import java.io.IOException
 
-JFile = java.io.File
-JBoolean = java.lang.Boolean
+JFile ||= java.io.File
+JBoolean ||= java.lang.Boolean
 
 module GeoGit
   module Command
@@ -15,7 +15,7 @@ module GeoGit
         @shapefiles = shapefiles
       end
 
-      def get_shapefile_data_store(shp_path)
+      def get_data_store(shp_path)
         return nil unless File.exist? shp_path
 
         begin
@@ -38,7 +38,7 @@ module GeoGit
         geogit = GeoGit::Instance.new(@repo_path).instance
 
         @shapefiles.each do |shp_path|
-          data_store = get_shapefile_data_store File.expand_path(shp_path)
+          data_store = get_data_store File.expand_path(shp_path)
 
           begin
             command = geogit.command(ImportOp.java_class)
