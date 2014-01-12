@@ -11,6 +11,7 @@ if defined? JRUBY_VERSION
   require 'geogit/commands/log'
   require 'geogit/commands/add'
   require 'geogit/commands/commit'
+  require 'geogit/commands/import_command.rb'
   require 'geogit/commands/import_shapefile'
   require 'geogit/commands/import_geojson'
   require 'geogit/commands/tree'
