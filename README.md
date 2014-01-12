@@ -1,3 +1,5 @@
+[![Code Climate](https://codeclimate.com/github/scooterw/geogit-ruby.png)](https://codeclimate.com/github/scooterw/geogit-ruby)
+
 geogit-ruby
 ===
 
