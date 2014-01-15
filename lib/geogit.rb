@@ -38,8 +38,9 @@ module GeoGit
         paths = GeoGit::Command::Tree.new(repo_path, tree).run
 
         paths.each do |path|
-          GeoGit::Command::Add.new(repo_path, "#{tree}/#{path}", tree).run
-          GeoGit::Command::Commit.new(repo_path, "imported_#{tree}/#{path}").run
+          tree_path = "#{tree}/#{path}"
+          GeoGit::Command::Add.new(repo_path, tree_path).run
+          GeoGit::Command::Commit.new(repo_path, "imported_#{tree_path}").run
         end
       end
     end

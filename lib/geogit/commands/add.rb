@@ -5,9 +5,8 @@ java_import org.geogit.api.plumbing.merge.ConflictsReadOp
 module GeoGit
   module Command
     class Add < GenericCommand
-      def initialize(repo_path, to_add, path_filter = nil)
+      def initialize(repo_path, path_filter = nil)
         @repo_path = repo_path
-        @to_add = to_add
         @path_filter = path_filter
       end
 
