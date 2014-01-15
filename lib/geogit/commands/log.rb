@@ -21,9 +21,11 @@ module GeoGit
 
         commits = command.call
         
-        if @offset >= 0 && @limit > 0
-          unless @offset * @limit >= count
-            commits = commits.drop(@offset * @limit).take(@limit)
+        if @limit > 0
+          unless @offset >= count
+            commits = commits.drop(@offset).take(@limit)
+          else
+            commits = []
           end
         end
 
@@ -34,7 +36,7 @@ module GeoGit
 
       private
       def prepare_output(commits)
-        commits.to_a.map { |c|
+        commits.map { |c|
           {
             id: c.id.to_s,
             message: c.message,
