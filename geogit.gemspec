@@ -23,6 +23,7 @@ Gem::Specification.new do |gem|
   gem.executables = ['geogit_console']
 
   gem.add_dependency 'multi_json', '~> 1.8.0'
+  gem.add_dependency 'faraday', '~> 0.9.0'
 
   gem.add_development_dependency 'rake'
   gem.add_development_dependency 'rspec'

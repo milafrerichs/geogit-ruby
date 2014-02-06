@@ -2,6 +2,7 @@ $: << File.expand_path(File.dirname(__FILE__))
 
 if defined? JRUBY_VERSION
   require 'java'
+  require 'faraday'
 
   Dir[File.join(File.expand_path('..', __FILE__), '..', 'geogit-libs', '*.jar')].each {|jar| require jar}
 
@@ -9,7 +10,9 @@ if defined? JRUBY_VERSION
   require 'geogit/commands/generic_command'
   require 'geogit/commands/init'
   require 'geogit/commands/log'
+  require 'geogit/commands/fast_add'
   require 'geogit/commands/add'
+  require 'geogit/commands/fast_commit'
   require 'geogit/commands/commit'
   require 'geogit/commands/import_command.rb'
   require 'geogit/commands/import_shapefile'
@@ -32,6 +35,8 @@ module GeoGit
     end
 
     def add_and_commit(repo_path)
+      geogit = GeoGit::Instance.new(repo_path).instance
+
       trees = GeoGit::Command::Tree.new(repo_path).run
 
       trees.each do |tree|
@@ -39,10 +44,12 @@ module GeoGit
 
         paths.each do |path|
           tree_path = "#{tree}/#{path}"
-          GeoGit::Command::Add.new(repo_path, tree_path).run
-          GeoGit::Command::Commit.new(repo_path, "imported_#{tree_path}").run
+          GeoGit::Command::FastAdd.new(geogit, repo_path, tree_path).run
+          GeoGit::Command::FastCommit.new(geogit, repo_path, "imported_#{tree_path}").run
         end
       end
+
+      geogit.close
     end
 
     def import_shapefile(repo_path, shapefile)
@@ -51,6 +58,12 @@ module GeoGit
     end
 
     def import_geojson(repo_path, geojson)
+      GeoGit::Command::ImportGeoJSON.new(repo_path, geojson).run
+      add_and_commit repo_path
+    end
+
+    def import_github_geojson(repo_path, url, field = nil)
+      geojson = Faraday.get(url).body
       GeoGit::Command::ImportGeoJSON.new(repo_path, geojson).run
       add_and_commit repo_path
     end
