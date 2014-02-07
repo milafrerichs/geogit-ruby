@@ -11,6 +11,21 @@ In development: `mvn clean install` to get Java/Scala dependencies
 
 `jruby -S rake console` or `bin/geogit_console` to open IRB with geogit loaded
 
+Import a repo from GitHub (with history):
+
+```ruby
+# without a client_id / client_secret, you will be severely rate limited
+# ability to import github repos may be affected
+GeoGit.configure do |c|
+  c.github = {
+    client_id: 'yourclientid',
+    client_secret: 'yourclientsecret'
+  }
+end
+
+GeoGit.import_github_repo 'username/reponame'
+```
+
 Create a repo and import a shapefile:
 
 ```ruby
