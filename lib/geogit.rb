@@ -1,12 +1,15 @@
+# -*- encoding: utf-8 -*-
 $: << File.expand_path(File.dirname(__FILE__))
 
 if defined? JRUBY_VERSION
   require 'java'
   require 'faraday'
+  require 'multi_json'
 
   Dir[File.join(File.expand_path('..', __FILE__), '..', 'geogit-libs', '*.jar')].each {|jar| require jar}
 
   require 'geogit/geogit'
+  require 'geogit/configuration'
   require 'geogit/commands/generic_command'
   require 'geogit/commands/init'
   require 'geogit/commands/log'
@@ -23,6 +26,9 @@ else
 end
 
 module GeoGit
+  extend self
+  extend Configuration
+
   class << self
     def create_or_init_repo(repo_path)
       expanded_path = File.expand_path repo_path
@@ -60,6 +66,53 @@ module GeoGit
     def import_geojson(repo_path, geojson)
       GeoGit::Command::ImportGeoJSON.new(repo_path, geojson).run
       add_and_commit repo_path
+    end
+
+    def import_github_repo(repo)
+      raise RuntimeError.new 'GitHub client_id and/or client_secret not specified in configuration' unless GeoGit.github && GeoGit.github[:client_id] && GeoGit.github[:client_secret]
+
+      client_details = "client_id=#{GeoGit.github[:client_id]}&client_secret=#{GeoGit.github[:client_secret]}"
+
+      repos_path = GeoGit.repos_path || File.expand_path('~/data/repos')
+      repo_path = File.join repos_path, repo.split('/').last
+
+      # create repository if does not exist
+      create_or_init_repo repo_path
+
+      commits = MultiJson.load Faraday.get("https://api.github.com/repos/#{repo}/commits?#{client_details}").body
+
+      size = commits.size
+      counter = 0
+
+      commits.reverse.each do |commit|
+        counter = counter + 1
+        puts "Processing commit: #{counter} of #{size}"
+
+        commit_details = MultiJson.load Faraday.get("#{commit['url']}?#{client_details}").body
+
+        committer = commit['commit']['committer']
+        commit_message = commit['commit']['message'] || "git: #{commit['sha']}"
+
+        commit_details['files'].each do |file|
+          if file['filename'].downcase.end_with? '.geojson'
+            # faraday_middleware gem has compatibility issues with faraday >= 0.9.0
+            #conn = Faraday.new("#{file['raw_url']}?#{client_details}") do |c|
+            #  c.use FaradayMiddleware::FollowRedirects
+            #  c.adapter :net_http
+            #end
+            
+            raw_url = "https://raw2.github.com/#{repo}/#{file['raw_url'].split('raw/').last}"
+            conn = Faraday.new("#{raw_url}?#{client_details}")
+
+            GeoGit::Command::ImportGeoJSON.new(repo_path, conn.get.body).run
+            GeoGit::Command::Add.new(repo_path).run
+            #TODO: Deal with timestamp
+            GeoGit::Command::Commit.new(repo_path, commit_message, committer['name'], committer['email']).run
+          end
+        end
+      end
+
+      {}
     end
 
     def import_github_geojson(repo_path, url, field = nil)
