@@ -5,8 +5,9 @@ java_import org.geotools.data.DataStore
 module GeoGit
   module Command
     class ImportCommand < GenericCommand
-      def initialize(repo_path)
+      def initialize(repo_path, fid_attribute = nil)
         @repo_path = repo_path
+        @fid_attribute = fid_attribute
       end
 
       def get_geogit_instance
@@ -17,7 +18,7 @@ module GeoGit
         nil
       end
 
-      def do_import(geogit, data)
+      def do_import(geogit, data, fid_attribute)
         data_store = get_data_store data
 
         begin
@@ -28,7 +29,7 @@ module GeoGit
             .set_overwrite(true)
             .set_destination_path(nil)
             .set_data_store(data_store)
-            .set_fid_attribute(nil)
+            .set_fid_attribute(fid_attribute)
             .set_progress_listener(nil)
 
           command.call

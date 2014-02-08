@@ -79,19 +79,22 @@ module GeoGit
       # create repository if does not exist
       create_or_init_repo repo_path
 
+      # start basic timer
+      start = Time.now
+
       commits = MultiJson.load Faraday.get("https://api.github.com/repos/#{repo}/commits?#{client_details}").body
 
       size = commits.size
-      counter = 0
 
-      commits.reverse.each do |commit|
-        counter = counter + 1
-        puts "Processing commit: #{counter} of #{size}"
+      commits.reverse.each_with_index do |commit, i|
+        puts "Processing commit: #{i + 1} of #{size}"
 
         commit_details = MultiJson.load Faraday.get("#{commit['url']}?#{client_details}").body
 
         committer = commit['commit']['committer']
         commit_message = commit['commit']['message'] || "git: #{commit['sha']}"
+
+        files_to_commit = false
 
         commit_details['files'].each do |file|
           if file['filename'].downcase.end_with? '.geojson'
@@ -102,17 +105,27 @@ module GeoGit
             #end
             
             raw_url = "https://raw2.github.com/#{repo}/#{file['raw_url'].split('raw/').last}"
+
             conn = Faraday.new("#{raw_url}?#{client_details}")
 
-            GeoGit::Command::ImportGeoJSON.new(repo_path, conn.get.body).run
+            geojson = conn.get.body
+
+            fid_attribute = MultiJson.load(geojson)['features'].first['properties'].keys.first
+
+            geojson_bytes = java.io.ByteArrayInputStream.new geojson.to_java_bytes
+
+            GeoGit::Command::ImportGeoJSON.new(repo_path, geojson_bytes, fid_attribute).run
             GeoGit::Command::Add.new(repo_path).run
-            #TODO: Deal with timestamp
-            GeoGit::Command::Commit.new(repo_path, commit_message, committer['name'], committer['email']).run
+
+            files_to_commit = true
           end
         end
+        
+        #TODO: Deal with timestamp
+        GeoGit::Command::Commit.new(repo_path, commit_message, committer['name'], committer['email']).run if files_to_commit
       end
 
-      {}
+      "Imported #{size} commits from #{repo} in #{Time.now - start} seconds"
     end
 
     def import_github_geojson(repo_path, url, field = nil)
