@@ -10,18 +10,9 @@ if defined? JRUBY_VERSION
 
   require 'geogit/geogit'
   require 'geogit/configuration'
-  require 'geogit/commands/generic_command'
-  require 'geogit/commands/init'
-  require 'geogit/commands/log'
-  require 'geogit/commands/fast_add'
-  require 'geogit/commands/add'
-  require 'geogit/commands/fast_commit'
-  require 'geogit/commands/commit'
-  require 'geogit/commands/import_command.rb'
-  require 'geogit/commands/import_shapefile'
-  require 'geogit/commands/import_geojson'
-  require 'geogit/commands/tree'
-else
+  require 'geogit/commands'
+
+  else
   abort "JRuby is required for this application (http://jruby.org)"
 end
 

@@ -30,15 +30,6 @@ module GeoGit
       end
 
       def get_data_store(geojson)
-        #input_stream = case geojson
-        #               when String
-        #                 ByteArrayInputStream.new geojson.to_java_bytes
-        #               when ByteArrayInputStream
-        #                 geojson
-        #               when FileInputStream
-        #                 geojson
-        #               end
-
         feature_collection = FeatureJSON.new.read_feature_collection geojson
         MemoryDataStore.new feature_collection
       end
