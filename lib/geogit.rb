@@ -54,8 +54,8 @@ module GeoGit
       add_and_commit repo_path
     end
 
-    def import_geojson(repo_path, geojson)
-      GeoGit::Command::ImportGeoJSON.new(repo_path, geojson).run
+    def import_geojson(repo_path, geojson, fid_attribute = nil)
+      GeoGit::Command::ImportGeoJSON.new(repo_path, geojson, fid_attribute).run
       add_and_commit repo_path
     end
 
