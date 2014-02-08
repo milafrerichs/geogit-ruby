@@ -12,6 +12,8 @@ if defined? JRUBY_VERSION
   require 'geogit/configuration'
   require 'geogit/commands'
 
+  java_import java.io.ByteArrayInputStream
+
   else
   abort "JRuby is required for this application (http://jruby.org)"
 end
@@ -103,7 +105,7 @@ module GeoGit
 
             fid_attribute = MultiJson.load(geojson)['features'].first['properties'].keys.first
 
-            geojson_bytes = java.io.ByteArrayInputStream.new geojson.to_java_bytes
+            geojson_bytes = ByteArrayInputStream.new geojson.to_java_bytes
 
             GeoGit::Command::ImportGeoJSON.new(repo_path, geojson_bytes, fid_attribute).run
             GeoGit::Command::Add.new(repo_path).run
@@ -119,9 +121,9 @@ module GeoGit
       "Imported #{size} commits from #{repo} in #{Time.now - start} seconds"
     end
 
-    def import_github_geojson(repo_path, url, field = nil)
-      geojson = Faraday.get(url).body
-      GeoGit::Command::ImportGeoJSON.new(repo_path, geojson).run
+    def import_github_geojson(repo_path, url, fid_attribute = nil)
+      geojson = ByteArrayInputStream.new Faraday.get(url).body.to_java_bytes
+      GeoGit::Command::ImportGeoJSON.new(repo_path, geojson, fid_attribute).run
       add_and_commit repo_path
     end
   end
