@@ -18,7 +18,7 @@ module GeoGit
         nil
       end
 
-      def do_import(geogit, data, fid_attribute)
+      def do_import(geogit, data, fid_attribute = nil)
         data_store = get_data_store data
 
         begin
