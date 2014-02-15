@@ -34,21 +34,39 @@ module GeoGit
     end
 
     def add_and_commit(repo_path)
-      geogit = GeoGit::Instance.new(repo_path).instance
-
-      trees = GeoGit::Command::Tree.new(repo_path).run
-
-      trees.each do |tree|
-        paths = GeoGit::Command::Tree.new(repo_path, tree).run
-
-        paths.each do |path|
-          tree_path = "#{tree}/#{path}"
-          GeoGit::Command::FastAdd.new(geogit, repo_path, tree_path).run
-          GeoGit::Command::FastCommit.new(geogit, repo_path, "imported_#{tree_path}").run
-        end
+      geogit = geogit_from_repo(repo_path)
+      repo_trees(repo_path).each do |tree|
+        tree_paths = tree_paths(repo_path,tree)
+        add(geogit,repo_path,tree_paths)
+        commit(geogit,repo_path,tree_paths)
       end
-
       geogit.close
+    end
+
+    def geogit_from_repo(repo_path)
+      GeoGit::Instance.new(repo_path).instance
+    end
+
+    def repo_trees(repo)
+      GeoGit::Command::Tree.new(repo).run
+    end
+    def repo_tree_path(repo,tree)
+      GeoGit::Command::Tree.new(repo, tree).run
+    end
+    def tree_paths(repo,tree)
+      repo_tree_path(repo,tree).collect { |path| "#{tree}/#{path}" }
+    end
+
+    def add(geogit,repo_path,tree_paths)
+      tree_paths.each do |tree_path|
+        GeoGit::Command::FastAdd.new(geogit, repo_path, tree_path).run
+      end
+    end
+
+    def commit(geogit,repo_path,tree_paths)
+      tree_paths.each do |tree_path|
+        GeoGit::Command::FastCommit.new(geogit, repo_path, "imported_#{tree_path}").run
+      end
     end
 
     def import_shapefile(repo_path, shapefile)
