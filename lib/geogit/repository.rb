@@ -8,7 +8,7 @@ module GeoGit
       @geogit ||= GeoGit::Instance.new(@repo_path).instance
     end
     def add_and_commit
-      repo_trees(@repo_path).each do |tree|
+      repo_trees.each do |tree|
         add(tree)
         commit(tree)
       end
