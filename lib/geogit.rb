@@ -9,6 +9,7 @@ if defined? JRUBY_VERSION
   Dir[File.join(File.expand_path('..', __FILE__), '..', 'geogit-libs', '*.jar')].each {|jar| require jar}
 
   require 'geogit/geogit'
+  require 'geogit/repository'
   require 'geogit/configuration'
   require 'geogit/commands'
 
@@ -34,21 +35,8 @@ module GeoGit
     end
 
     def add_and_commit(repo_path)
-      geogit = GeoGit::Instance.new(repo_path).instance
-
-      trees = GeoGit::Command::Tree.new(repo_path).run
-
-      trees.each do |tree|
-        paths = GeoGit::Command::Tree.new(repo_path, tree).run
-
-        paths.each do |path|
-          tree_path = "#{tree}/#{path}"
-          GeoGit::Command::FastAdd.new(geogit, repo_path, tree_path).run
-          GeoGit::Command::FastCommit.new(geogit, repo_path, "imported_#{tree_path}").run
-        end
-      end
-
-      geogit.close
+      repo = GeoGit::Repository.new(repo_path)
+      repo.add_and_commit
     end
 
     def import_shapefile(repo_path, shapefile)
