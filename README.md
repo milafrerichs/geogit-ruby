@@ -47,3 +47,6 @@ log = cmd.run
 # => {:count=>49, :commits=>[{:id=>"b0524c80b72cf3a7a13ed1edf7114156bae95a3b", :message=>"imported_states/1", :author=>{:name=>"", :email=>""}, :committer=>{:name=>"Scooter Wadsworth", :email=>"scooterwadsworth@gmail.com"}}, {:id=>"838d69be61caffb629373ed9a44a417e5f2b1bfd", :message=>"imported_states/2", :author=>{:name=>"", :email=>""}, :committer=>{:name=>"Scooter Wadsworth", :email=>"scooterwadsworth@gmail.com"}}, ...}
 ```
 
+CONTRIBUTORS
+===
+milafrerichs (https://github.com/milafrerichs)
