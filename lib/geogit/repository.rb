@@ -17,6 +17,12 @@ module GeoGit
       end
     end
 
+    def log
+      GeoGit::Command::Log.new(geogit, @repo_path).run
+    ensure
+      close
+    end
+
     def create_or_init
       GeoGit::Command::Init.new(geogit, @repo_path).run
       close

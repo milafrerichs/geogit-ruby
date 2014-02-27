@@ -3,7 +3,8 @@ java_import org.geogit.api.porcelain.LogOp
 module GeoGit
   module Command
     class Log < GenericCommand
-      def initialize(repo_path, path = '', offset = 0, limit = 0)
+      def initialize(geogit, repo_path, path = '', offset = 0, limit = 0)
+        @geogit = geogit
         @repo_path = repo_path
         @path = path
         @offset = offset
@@ -11,8 +12,7 @@ module GeoGit
       end
 
       def run
-        geogit = GeoGit::Instance.new(@repo_path).instance
-        command = geogit.command(LogOp.java_class)
+        command = @geogit.command(LogOp.java_class)
 
         command.add_path @path unless @path.empty?
 
@@ -30,8 +30,6 @@ module GeoGit
         end
 
         {count: count, commits: prepare_output(commits.to_a)}
-      ensure
-        geogit.close
       end
 
       private
