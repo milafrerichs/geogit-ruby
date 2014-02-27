@@ -7,7 +7,7 @@
 <version>0.0.1-SNAPSHOT</version>
 
 <properties>
-  <gt.version>9.0</gt.version>
+  <gt.version>10.5</gt.version>
   <geogit.version>0.7-SNAPSHOT</geogit.version>
   <akka.version>2.2.1</akka.version>
 </properties>
@@ -65,6 +65,11 @@
   <dependency>
     <groupId>org.geogit</groupId>
     <artifactId>geogit-neo4j</artifactId>
+    <version>${geogit.version}</version>
+  </dependency>
+  <dependency>
+    <groupId>org.geogit</groupId>
+    <artifactId>geogit-mongodb</artifactId>
     <version>${geogit.version}</version>
   </dependency>
   <dependency>
