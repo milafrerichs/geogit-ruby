@@ -1,4 +1,5 @@
 java_import org.geogit.storage.bdbje.JEStorageModule
+java_import org.geogit.storage.mongo.MongoStorageModule
 java_import org.geogit.di.GeogitModule
 java_import org.geogit.api.GeoGIT
 java_import org.geogit.api.DefaultPlatform
@@ -10,28 +11,29 @@ module GeoGit
   class Instance
     attr_accessor :repo_path, :instance
 
-    def initialize(repo_path)
+    STORAGE_BACKENDS = {
+      'bdbje' => JEStorageModule.new,
+      'mongo' => MongoStorageModule.new
+    }
+
+    def initialize(repo_path, backend = 'bdbje')
       @repo_path = File.expand_path repo_path
-      @injector = get_injector
+      @injector = get_injector backend
       @instance = get_instance @repo_path
     end
     
-    def get_command_locator(transaction_id = nil)
-      unless transaction_id.nil?
-        GeoGitTransaction.new(
-          @instance.get_command_locator,
-          @instance.get_repository,
-          transaction_id
-        )
-      else
-        @instance.get_command_locator
+    protected
+    def storage_type(repo_path)
+      File.open(File.join(repo_path, '.geogit', 'config')) do |f|
+        f.each_line.detect {|line| line =~ /objects|staging/}.split(' ').last
       end
     end
 
     protected
-    def get_injector
-      je_storage_module = JEStorageModule.new
-      Guice.create_injector Modules.override(GeogitModule.new).with(je_storage_module)
+    def get_injector(backend = nil)
+      backend ||= storage_type @repo_path
+      storage_module = STORAGE_BACKENDS[backend]
+      Guice.create_injector Modules.override(GeogitModule.new).with(storage_module)
     end
 
     protected
@@ -39,7 +41,7 @@ module GeoGit
       begin
         platform = DefaultPlatform.new
         platform.set_working_dir java.io.File.new(path)
-        geogit = GeoGIT.new(get_injector, platform.pwd)
+        geogit = GeoGIT.new(@injector, platform.pwd)
         geogit.get_or_create_repository
         geogit
       rescue => ex
