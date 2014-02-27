@@ -14,8 +14,7 @@ if defined? JRUBY_VERSION
   require 'geogit/commands'
 
   java_import java.io.ByteArrayInputStream
-
-  else
+else
   abort "JRuby is required for this application (http://jruby.org)"
 end
 
@@ -31,7 +30,9 @@ module GeoGit
         Dir.mkdir expanded_path
       end
 
-      GeoGit::Command::Init.new(expanded_path).run
+      repo = GeoGit::Repository.new expanded_path
+      repo.create_or_init
+      repo
     end
 
     def add_and_commit(repo_path)

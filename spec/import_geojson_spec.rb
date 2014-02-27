@@ -7,7 +7,7 @@ describe GeoGit::Command::ImportGeoJSON do
   before :all do
     repo_path = File.expand_path '~/geogit/test_repo'
     FileUtils.mkdir_p repo_path
-    GeoGit::Command::Init.new(repo_path).run
+    GeoGit::Repository.new(repo_path).create_or_init
   end
 
   after :all do
