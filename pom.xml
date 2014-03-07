@@ -8,7 +8,7 @@
 
 <properties>
   <gt.version>10.5</gt.version>
-  <geogit.version>0.7-SNAPSHOT</geogit.version>
+  <geogit.version>0.8-SNAPSHOT</geogit.version>
   <akka.version>2.2.1</akka.version>
 </properties>
 
