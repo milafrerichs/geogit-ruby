@@ -13,6 +13,8 @@ In development: `mvn clean install` to get Java/Scala dependencies
 
 Import a repo from GitHub (with history):
 
+NOTE: Some repos fail due to to inconsistencies in GeoJSON files and strict processing of GeoJSON in GeoTools
+
 ```ruby
 # without a client_id / client_secret, you will be severely rate limited
 # ability to import github repos may be affected
