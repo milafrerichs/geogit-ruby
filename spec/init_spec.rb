@@ -14,7 +14,8 @@ describe GeoGit::Command::Init do
 
   it "should create empty repo" do
     repo_path = File.expand_path('~/geogit/test_repo')
-    GeoGit::Command::Init.new(repo_path).run
+    geogit = GeoGit::Instance.new(repo_path).instance
+    GeoGit::Command::Init.new(geogit, repo_path).run
     Dir.exist?(File.join(repo_path, '.geogit')).should be_true
   end
 

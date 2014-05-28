@@ -9,12 +9,12 @@ if defined? JRUBY_VERSION
   Dir[File.join(File.expand_path('..', __FILE__), '..', 'geogit-libs', '*.jar')].each {|jar| require jar}
 
   require 'geogit/geogit'
+  require 'geogit/repository'
   require 'geogit/configuration'
   require 'geogit/commands'
 
   java_import java.io.ByteArrayInputStream
-
-  else
+else
   abort "JRuby is required for this application (http://jruby.org)"
 end
 
@@ -30,25 +30,14 @@ module GeoGit
         Dir.mkdir expanded_path
       end
 
-      GeoGit::Command::Init.new(expanded_path).run
+      repo = GeoGit::Repository.new expanded_path
+      repo.create_or_init
+      repo
     end
 
     def add_and_commit(repo_path)
-      geogit = GeoGit::Instance.new(repo_path).instance
-
-      trees = GeoGit::Command::Tree.new(repo_path).run
-
-      trees.each do |tree|
-        paths = GeoGit::Command::Tree.new(repo_path, tree).run
-
-        paths.each do |path|
-          tree_path = "#{tree}/#{path}"
-          GeoGit::Command::FastAdd.new(geogit, repo_path, tree_path).run
-          GeoGit::Command::FastCommit.new(geogit, repo_path, "imported_#{tree_path}").run
-        end
-      end
-
-      geogit.close
+      repo = GeoGit::Repository.new(repo_path)
+      repo.add_and_commit
     end
 
     def import_shapefile(repo_path, shapefile)
@@ -61,6 +50,67 @@ module GeoGit
       add_and_commit repo_path
     end
 
+    def import_commit(url, repo_path, commit)
+      conn = Faraday.new url
+
+      geojson = conn.get.body
+
+      fid_attribute = MultiJson.load(geojson)['features'].first['properties'].keys.first
+      geojson_bytes = ByteArrayInputStream.new geojson.to_java_bytes
+
+      GeoGit::Command::ImportGeoJSON.new(repo_path, geojson_bytes, fid_attribute).run
+      GeoGit::Command::Add.new(repo_path).run
+      #TODO: Deal with commit timestamp(s)
+      GeoGit::Command::Commit.new(repo_path, commit[:message], commit[:committer]['name'], commit[:committer]['email']).run
+    end
+
+    def batch_commits(commits)
+      client_details = "client_id=#{GeoGit.github[:client_id]}&client_secret=#{GeoGit.github[:client_secret]}"
+
+      [].tap do |batch|
+        MultiJson.load(commits).reverse.each_with_index do |commit, i|
+          committer = commit['commit']['committer']
+          commit_message = commit['commit']['message'] || "git: #{commit['sha']}"
+
+          details = MultiJson.load Faraday.get("#{commit['url']}?#{client_details}").body
+        
+          details['files'].each do |file|
+            if file['filename'].downcase.end_with? '.geojson'
+              batch << {
+                committer: commit['commit']['committer'],
+                message: commit['commit']['message'] || "git: #{commit['sha']}",
+                raw_file: "#{file['raw_url'].split('raw/').last}"
+              }
+            end
+          end
+        end
+      end
+    end
+
+    def get_commits(url)
+      response = Faraday.get url
+
+      if response.headers.include? 'link'
+        follow_link response.headers['link'], batch_commits(response.body)
+      else
+        batch_commits response.body
+      end
+    end
+
+    def follow_link(link, batch = nil)
+      if link =~ /rel="next"/
+        next_link = link.scan(/<(.*?)>/).first.first
+
+        response = Faraday.get next_link
+
+        if response.headers.include? 'link'
+          follow_link response.headers['link'], batch + batch_commits(response.body)
+        end  
+      else
+        batch
+      end
+    end
+
     def import_github_repo(repo)
       raise RuntimeError.new 'GitHub client_id and/or client_secret not specified in configuration' unless GeoGit.github && GeoGit.github[:client_id] && GeoGit.github[:client_secret]
 
@@ -70,55 +120,26 @@ module GeoGit
       repo_path = File.join repos_path, repo.split('/').last
 
       # create repository if does not exist
-      create_or_init_repo repo_path
+      geogit_repo = create_or_init_repo repo_path
 
       # start basic timer
       start = Time.now
 
-      commits = MultiJson.load Faraday.get("https://api.github.com/repos/#{repo}/commits?#{client_details}").body
+      puts "Getting information about commits ..."
 
-      size = commits.size
+      url = "https://api.github.com/repos/#{repo}/commits?#{client_details}"
 
-      commits.reverse.each_with_index do |commit, i|
+      batch_commits = get_commits(url)
+      size = batch_commits.size
+
+      puts "Processing commits ..."
+
+      batch_commits.each_with_index do |commit, i|
         puts "Processing commit: #{i + 1} of #{size}"
-
-        commit_details = MultiJson.load Faraday.get("#{commit['url']}?#{client_details}").body
-
-        committer = commit['commit']['committer']
-        commit_message = commit['commit']['message'] || "git: #{commit['sha']}"
-
-        files_to_commit = false
-
-        commit_details['files'].each do |file|
-          if file['filename'].downcase.end_with? '.geojson'
-            # faraday_middleware gem has compatibility issues with faraday >= 0.9.0
-            #conn = Faraday.new("#{file['raw_url']}?#{client_details}") do |c|
-            #  c.use FaradayMiddleware::FollowRedirects
-            #  c.adapter :net_http
-            #end
-            
-            raw_url = "https://raw2.github.com/#{repo}/#{file['raw_url'].split('raw/').last}"
-
-            conn = Faraday.new("#{raw_url}?#{client_details}")
-
-            geojson = conn.get.body
-
-            fid_attribute = MultiJson.load(geojson)['features'].first['properties'].keys.first
-
-            geojson_bytes = ByteArrayInputStream.new geojson.to_java_bytes
-
-            GeoGit::Command::ImportGeoJSON.new(repo_path, geojson_bytes, fid_attribute).run
-            GeoGit::Command::Add.new(repo_path).run
-
-            files_to_commit = true
-          end
-        end
-        
-        #TODO: Deal with timestamp
-        GeoGit::Command::Commit.new(repo_path, commit_message, committer['name'], committer['email']).run if files_to_commit
+        import_commit "https://raw2.github.com/#{repo}/#{commit[:raw_file]}?#{client_details}", repo_path, commit
       end
 
-      "Imported #{size} commits from #{repo} in #{Time.now - start} seconds"
+      puts "Imported #{size} commits from #{repo} in #{Time.now - start} seconds"
     end
 
     def import_github_geojson(repo_path, url, fid_attribute = nil)

@@ -4,4 +4,5 @@ Gemfile.lock
 .ruby-version
 *.gem
 coverage/
+test_scripts/
 
